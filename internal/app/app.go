@@ -76,6 +76,7 @@ func Run() {
 	}
 
 	if cfg.Postgres.AutoMigrate {
+
 		migrationDriver, err := postgres.WithInstance(db.DB, &postgres.Config{})
 		if err != nil {
 			l.Error("failed to migrate to postgresql: ", err.Error())
