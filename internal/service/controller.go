@@ -3,10 +3,10 @@ package service
 import (
 	"context"
 
-	controllerpkg "homepp/api-go/internal/controller"
-	"homepp/api-go/internal/entity"
-	infrastructure2 "homepp/api-go/internal/service/infrastructure"
-	"homepp/api-go/pkg/errors"
+	controllerpkg "api-go/internal/controller"
+	"api-go/internal/entity"
+	infrastructure2 "api-go/internal/service/infrastructure"
+	"api-go/pkg/errors"
 )
 
 type (

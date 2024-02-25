@@ -5,10 +5,11 @@ import (
 	"database/sql"
 	"log/slog"
 
+	"api-go/internal/entity"
+	"api-go/internal/service/infrastructure"
+	"api-go/pkg/errors"
+
 	"github.com/jmoiron/sqlx"
-	"homepp/api-go/internal/entity"
-	"homepp/api-go/internal/service/infrastructure"
-	"homepp/api-go/pkg/errors"
 )
 
 type (

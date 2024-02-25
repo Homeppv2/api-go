@@ -12,16 +12,17 @@ import (
 	"syscall"
 	"time"
 
+	"api-go/internal/config"
+	"api-go/internal/controller/http"
+	"api-go/internal/controller/middleware"
+	"api-go/internal/infrastructure"
+	"api-go/internal/service"
+	"api-go/pkg/hasher"
+
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
-	"homepp/api-go/internal/config"
-	"homepp/api-go/internal/controller/http"
-	"homepp/api-go/internal/controller/middleware"
-	"homepp/api-go/internal/infrastructure"
-	"homepp/api-go/internal/service"
-	"homepp/api-go/pkg/hasher"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"

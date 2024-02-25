@@ -3,12 +3,13 @@ package service
 import (
 	"context"
 
+	controllerpkg "api-go/internal/controller"
+	"api-go/internal/entity"
+	"api-go/internal/service/infrastructure"
+	"api-go/pkg/errors"
+	"api-go/pkg/hasher"
+
 	"github.com/google/uuid"
-	controllerpkg "homepp/api-go/internal/controller"
-	"homepp/api-go/internal/entity"
-	"homepp/api-go/internal/service/infrastructure"
-	"homepp/api-go/pkg/errors"
-	"homepp/api-go/pkg/hasher"
 )
 
 type (

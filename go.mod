@@ -1,4 +1,4 @@
-module homepp/api-go
+module api-go
 
 go 1.21.1
 
