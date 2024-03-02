@@ -1,3 +1,5 @@
+[![Docker Image CI](https://github.com/Homeppv2/api-go/actions/workflows/docker-image.yml/badge.svg)](https://github.com/Homeppv2/api-go/actions/workflows/docker-image.yml)
+
 # API
 
 ## Краткое описание
