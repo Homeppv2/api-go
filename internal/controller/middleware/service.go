@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 
-	"homepp/api-go/internal/entity"
+	"api-go/internal/entity"
 )
 
 type AuthService interface {

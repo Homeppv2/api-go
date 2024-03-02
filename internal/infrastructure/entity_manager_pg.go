@@ -1,7 +1,7 @@
 package infrastructure
 
 import (
-	"homepp/api-go/internal/service/infrastructure"
+	"api-go/internal/service/infrastructure"
 )
 
 type (

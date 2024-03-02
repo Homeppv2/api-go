@@ -3,8 +3,9 @@ package http
 import (
 	"errors"
 
+	errorsPkg "api-go/pkg/errors"
+
 	"github.com/gofiber/fiber/v2"
-	errorsPkg "homepp/api-go/pkg/errors"
 )
 
 var errCodeMap = map[errorsPkg.ErrCode]int{

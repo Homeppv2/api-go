@@ -1,11 +1,12 @@
 package http
 
 import (
+	"api-go/internal/controller"
+	"api-go/internal/controller/middleware"
+	"api-go/internal/entity"
+	"api-go/pkg/errors"
+
 	"github.com/gofiber/fiber/v2"
-	"homepp/api-go/internal/controller"
-	"homepp/api-go/internal/controller/middleware"
-	"homepp/api-go/internal/entity"
-	"homepp/api-go/pkg/errors"
 )
 
 type ControllerHandler struct {
