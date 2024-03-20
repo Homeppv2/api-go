@@ -6,7 +6,6 @@ import (
 	controllerpkg "api-go/internal/controller"
 	"api-go/internal/entity"
 	infrastructure2 "api-go/internal/service/infrastructure"
-	"api-go/pkg/errors"
 )
 
 type (
@@ -23,84 +22,25 @@ func NewControllerService(controllerRepo infrastructure2.ControllerGateway, user
 	}
 }
 
-func (s *ControllerService) Create(ctx context.Context, hwKey string) (res entity.Controller, err error) {
-	_, err = s.controllerRepo.GetByHwKey(ctx, hwKey)
-	if err != errors.ErrControllerNotFound {
-		if err == nil {
-			return entity.Controller{}, errors.HandleServiceError(errors.ErrControllerAlreadyExist)
-		}
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
+func (c *ControllerService) GetCountMessangesFromIdForUserId(ctx context.Context, count int, from int, userID int) (msg []entity.MessangeTypeZiroJson, err error) {
+	// достать все смс начная с определенного для такогоо юзер айди
+	q2 := "select id_contorller from user_conttollers where id_user=$1;"
+	q1 := `select (id_messange, id_contorller, status_controller, charge_controller, temperature_MK_controller) from messanges where id_contorller=$1 and id_messange > $2 limit $3;`
+	q3 := "select (id_messange, leack) from messanges_contollers_leack where id_messange=$1;"
+	q4 := "select (id_messange, temperature, humidity, pressure, gas) from messanges_contollers_module where id_messange=$1;"
+	q5 := "select (id_messange, temperature, humidity, humidity, VOC, gas1, gas2, gas3, pm1, pm25, pm10, fire, smoke) where id_messange=$1;"
 
-	res, err = s.controllerRepo.Create(ctx, entity.CreateControllerDTO{HwKey: hwKey, IsUsed: false})
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
-
+	return nil, nil
 }
 
-func (s *ControllerService) GetByID(ctx context.Context, id int64) (res entity.Controller, err error) {
-	res, err = s.controllerRepo.GetByID(ctx, id)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
+func (c *ControllerService) GetControllersByUserId(ctx context.Context, user_id int) (controllers []entity.ControllersData, err error) {
+	// из таблицы достать контролеры по юзер айди
+	q := `with tmp as (
+		select id_contorller from user_conttollers where id_user=$1
+	) select (id_contorller, type_controller, number_controller) from contollers where id_contorller=tmp.id;
+	`
 
-	return res, nil
-}
-
-func (s *ControllerService) GetByHwKey(ctx context.Context, hwKey string) (res entity.Controller, err error) {
-	res, err = s.controllerRepo.GetByHwKey(ctx, hwKey)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
-}
-
-func (s *ControllerService) GetByIsUsedBy(ctx context.Context, isUsedBy int64) (res []entity.Controller, err error) {
-	_, err = s.userRepo.GetByID(ctx, isUsedBy)
-	if err != nil {
-		return []entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	res, err = s.controllerRepo.GetByIsUsedBy(ctx, isUsedBy)
-	if err != nil {
-		return []entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
-}
-
-func (s *ControllerService) UpdateIsUsed(ctx context.Context, req entity.UpdateControllerIsUsedByRequest) (res entity.Controller, err error) {
-	if req.IsUsedBy.Valid {
-		_, err = s.userRepo.GetByID(ctx, req.IsUsedBy.ValueOrZero())
-		if err != nil {
-			return entity.Controller{}, errors.HandleServiceError(err)
-		}
-	}
-
-	res, err = s.controllerRepo.GetByID(ctx, req.ID)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	res, err = s.controllerRepo.UpdateIsUsed(ctx, req)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
-}
-
-func (s *ControllerService) Delete(ctx context.Context, id int64) (err error) {
-	err = s.controllerRepo.Delete(ctx, id)
-	if err != nil {
-		return errors.HandleServiceError(err)
-	}
-
-	return nil
+	return nil, nil
 }
 
 var _ controllerpkg.ControllerService = (*ControllerService)(nil)

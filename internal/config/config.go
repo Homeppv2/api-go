@@ -67,8 +67,6 @@ func LoadConfig() (*Config, error) {
 			ConnMaxLifetime: 20,
 			MaxIdleConns:    15,
 			ConnMaxIdleTime: 30,
-			AutoMigrate:     false,
-			MigrationsPath:  "db/migration",
 		},
 		Redis: Redis{
 			Host:     "redis",

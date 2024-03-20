@@ -26,7 +26,7 @@ func NewUserRepo(db *sqlx.DB, l *slog.Logger) *UserRepo {
 	}
 }
 
-func (r *UserRepo) Create(ctx context.Context, req entity.CreateUserDTO) (res entity.User, err error) {
+func (r *UserRepo) Create(ctx context.Context, req entity.User) (res entity.User, err error) {
 	q := `
 		INSERT INTO users (username, email, hash_password)
 		VALUES ($1, $2, $3)
@@ -38,11 +38,10 @@ func (r *UserRepo) Create(ctx context.Context, req entity.CreateUserDTO) (res en
 		r.l.Error("failed in UserRepo.Create: ", err.Error())
 		return entity.User{}, err
 	}
-
 	return res, nil
 }
 
-func (r *UserRepo) GetByID(ctx context.Context, id int64) (res entity.User, err error) {
+func (r *UserRepo) GetByID(ctx context.Context, id int) (res entity.User, err error) {
 	q := `
 		SELECT id, username, email, hash_password
 		FROM users

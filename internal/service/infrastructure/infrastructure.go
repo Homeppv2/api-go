@@ -8,24 +8,20 @@ import (
 
 type (
 	UserGateway interface {
-		Create(ctx context.Context, req entity.CreateUserDTO) (res entity.User, err error)
-		GetByID(ctx context.Context, id int64) (res entity.User, err error)
+		Create(ctx context.Context, req entity.User) (res entity.User, err error)
+		GetByID(ctx context.Context, id int) (res entity.User, err error)
 		GetByEmail(ctx context.Context, email string) (res entity.User, err error)
 	}
 
-	SessionGateway interface {
-		Create(ctx context.Context, req entity.Session) (err error)
-		GetByToken(ctx context.Context, token string) (res entity.Session, err error)
-		Delete(ctx context.Context, token string) (err error)
-	}
-
+	// todo реализовать
+	// функционал удаления смс
 	ControllerGateway interface {
-		Create(ctx context.Context, req entity.CreateControllerDTO) (res entity.Controller, err error)
-		GetByID(ctx context.Context, id int64) (res entity.Controller, err error)
-		GetByHwKey(ctx context.Context, hwKey string) (res entity.Controller, err error)
-		GetByIsUsedBy(ctx context.Context, isUsedBy int64) (res []entity.Controller, err error)
-		UpdateIsUsed(ctx context.Context, req entity.UpdateControllerIsUsedByRequest) (res entity.Controller, err error)
-		Delete(ctx context.Context, id int64) (err error)
+		GetIdController(ctx context.Context, type_ int, number int) (id int, err error)
+		CreateMessangeControllerTypeOne(ctx context.Context, id int, main entity.MainMessangesData, add entity.ContollersLeackMessangesData) (err error)
+		CreateMessangeControllerTypeTwo(ctx context.Context, id int, main entity.MainMessangesData, add entity.ContollersModuleMessangesData) (err error)
+		CreateMessangeControllerTypeThree(ctx context.Context, id int, main entity.MainMessangesData, add entity.ControlerEnviromentDataMessange) (err error)
+		GetCountMessangesFromIdForUserId(ctx context.Context, count int, from int, userID int) (msg []entity.MessangeTypeZiroJson, err error)
+		GetControllersByUserId(ctx context.Context, user_id int) (controllers []entity.ControllersData, err error)
 	}
 
 	EntityManager interface {

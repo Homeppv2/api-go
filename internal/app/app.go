@@ -1,31 +1,22 @@
 package app
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"log"
 	"log/slog"
-	"net"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
 	"api-go/internal/config"
-	"api-go/internal/controller/http"
 	"api-go/internal/controller/middleware"
 	"api-go/internal/infrastructure"
 	"api-go/internal/service"
 	"api-go/pkg/hasher"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
 	"github.com/jmoiron/sqlx"
-	"github.com/redis/go-redis/v9"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/cors"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/golang-migrate/migrate/v4/source/github"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -39,13 +30,6 @@ func Run() {
 
 	l := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: cfg.Logger.Level}))
 	l.Info("success initializing logger")
-
-	f := fiber.New(fiber.Config{
-		DisableStartupMessage: true,
-	})
-	f.Use(cors.New(cors.Config{
-		AllowHeaders: "*",
-	}))
 
 	l.Info("success initializing fiber")
 
@@ -75,84 +59,56 @@ func Run() {
 		return
 	}
 
-	if cfg.Postgres.AutoMigrate {
-
-		migrationDriver, err := postgres.WithInstance(db.DB, &postgres.Config{})
-		if err != nil {
-			l.Error("failed to migrate to postgresql: ", err.Error())
-			return
-		}
-
-		m, err := migrate.NewWithDatabaseInstance(
-			fmt.Sprintf("file://%s", cfg.Postgres.MigrationsPath),
-			"user",
-			migrationDriver,
-		)
-		if err != nil {
-			l.Error("failed to migrate to postgresql: ", err.Error())
-			return
-		}
-
-		err = m.Up()
-		if err != nil && !errors.Is(err, migrate.ErrNoChange) {
-			l.Error("failed to migrate to postgresql: ", err.Error())
-			return
-		}
-	}
-
 	l.Info("success connecting to postgresql")
 
-	// redis
-	redisClient := redis.NewClient(&redis.Options{
-		Addr:     net.JoinHostPort(cfg.Redis.Host, cfg.Redis.Port),
-		Password: cfg.Redis.Password,
-		DB:       cfg.Redis.DB,
-	})
-
-	pong, err := redisClient.Ping(context.Background()).Result()
-	if err != nil || pong != "PONG" {
-		l.Error("failed to ping to redis: ", err.Error())
+	eventSubsripter, err := infrastructure.NewEventSubsripter("uri")
+	if err != nil {
+		l.Error("failed to ping to rabbit: ", err.Error())
 		return
 	}
-
-	l.Info("success connecting to redis")
 
 	// hasher
 	h := hasher.NewHasher()
 
 	// infrastructures
 	registryRepo := infrastructure.NewPGRegistry(db, l)
-	sessionRepo := infrastructure.NewSessionRepo(redisClient, l, cfg.Auth.Token.ExpiresIn)
 	userRepo := infrastructure.NewUserRepo(db, l)
 	controllerRepo := infrastructure.NewControllerRepo(db, l)
 
 	// services
-	authService := service.NewAuthService(sessionRepo, userRepo, *h)
 	controllerService := service.NewControllerService(controllerRepo, userRepo)
 	userService := service.NewUserService(registryRepo, *h)
 
 	// controllers
-	middlewareManager := middleware.NewMiddlewareManager(authService)
-	authHandler := http.NewAuthHandler(authService, *middlewareManager)
-	userHandler := http.NewUserHandler(userService, *middlewareManager)
-	controllerHandler := http.NewControllerHandler(controllerService, *middlewareManager)
+
+	serverlogin := &http.Server{
+		Addr: "/login",
+		Handler: middleware.ServerLogin{
+			Logf:             log.Printf,
+			EventSubsripter:  eventSubsripter,
+			UserService:      userService,
+			ControlerService: controllerService,
+		},
+		ReadTimeout:  time.Second * 10,
+		WriteTimeout: time.Second * 10,
+	}
+	serverregister := &http.Server{
+		Addr: "/register",
+		Handler: middleware.ServerRegister{
+			Logf:        log.Printf,
+			UserService: userService,
+		},
+		ReadTimeout:  time.Second * 10,
+		WriteTimeout: time.Second * 10,
+	}
+	go func() {
+		serverregister.ListenAndServe()
+	}()
+	go func() {
+		serverlogin.ListenAndServe()
+	}()
 
 	// groups
-	apiGroup := f.Group("api")
-	authGroup := apiGroup.Group("auth")
-	usersGroup := apiGroup.Group("users")
-	controllersGroup := apiGroup.Group("controllers")
-
-	authHandler.Register(authGroup)
-	userHandler.Register(usersGroup)
-	controllerHandler.Register(controllersGroup)
-
-	go func() {
-		err = f.Listen(net.JoinHostPort(cfg.HTTP.Host, cfg.HTTP.Port))
-		if err != nil {
-			log.Fatal(err.Error())
-		}
-	}()
 
 	l.Debug("success starting http server")
 
