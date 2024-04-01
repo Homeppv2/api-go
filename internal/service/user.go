@@ -3,65 +3,60 @@ package service
 import (
 	"context"
 
-	controllerpkg "api-go/internal/controller"
-	"api-go/internal/entity"
-	infrastructure2 "api-go/internal/service/infrastructure"
-	"api-go/pkg/errors"
-	"api-go/pkg/hasher"
+	"github.com/Homeppv2/api-go/internal/database"
+	"github.com/Homeppv2/entitys"
+
+	"github.com/Homeppv2/api-go/pkg/errors"
+	"github.com/Homeppv2/api-go/pkg/hasher"
 )
 
 type (
 	UserService struct {
-		repos  infrastructure2.Registry
+		base database.DatabaseInterface
 		hasher hasher.Hasher
 	}
 )
 
-func NewUserService(repos infrastructure2.Registry, hasher hasher.Hasher) *UserService {
+func NewUserService(base database.DatabaseInterface, hasher hasher.Hasher) *UserService {
 	return &UserService{
-		repos:  repos,
+		base:  base,
 		hasher: hasher,
 	}
 }
 
-func (s *UserService) Register(ctx context.Context, req entity.User) (res entity.User, err error) {
-	_, err = s.repos.User().GetByEmail(ctx, req.Email)
+func (s *UserService) Register(ctx context.Context, req entitys.User) (res entitys.User, err error) {
+	_, err = s.base.GetUserByEmail(ctx, req.Email)
 	if err != errors.ErrUserNotFound {
 		if err == nil {
-			return entity.User{}, errors.HandleServiceError(errors.ErrUserEmailAlreadyExist)
+			return entitys.User{}, errors.HandleServiceError(errors.ErrUserEmailAlreadyExist)
 		}
-		return entity.User{}, errors.HandleServiceError(err)
+		return entitys.User{}, errors.HandleServiceError(err)
 	}
 
-	err = s.repos.WithTx(ctx, func(m infrastructure2.EntityManager) (err error) {
-		res, err = s.repos.User().Create(ctx, req)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
+	res, err = s.base.CreateUser(ctx, req)
 	if err != nil {
-		return entity.User{}, errors.HandleServiceError(err)
+		return entitys.User{}, errors.HandleServiceError(err)
 	}
-	return res, nil
+	return 
 }
 
-func (s *UserService) GetByID(ctx context.Context, userID int) (res entity.User, err error) {
-	res, err = s.repos.User().GetByID(ctx, userID)
+func (s *UserService) GetByID(ctx context.Context, userID int) (res entitys.User, err error) {
+	res, err = s.base.GetUserByID(ctx, userID)
 	if err != nil {
-		return entity.User{}, errors.HandleServiceError(err)
+		return entitys.User{}, errors.HandleServiceError(err)
 	}
-
-	return res, nil
+	return 
 }
 
-func (s *UserService) GetByEmail(ctx context.Context, email string) (res entity.User, err error) {
-	res, err = s.repos.User().GetByEmail(ctx, email)
+func (s *UserService) GetByEmail(ctx context.Context, email string) (res entitys.User, err error) {
+	res, err = s.base.GetUserByEmail(ctx, email)
 	if err != nil {
-		return entity.User{}, errors.HandleServiceError(err)
+		return entitys.User{}, errors.HandleServiceError(err)
 	}
-
-	return res, nil
+	return 
 }
 
-var _ controllerpkg.UserService = (*UserService)(nil)
+func (s *UserService) GetControllersByUserId(ctx context.Context, userID int) (res []entitys.ControllersData, err error) {
+	res, err = s.base.GetListControllersByUserId(ctx, userID)
+	return
+}

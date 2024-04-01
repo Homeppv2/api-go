@@ -1,6 +1,6 @@
-module api-go
+module github.com/Homeppv2/api-go
 
-go 1.21.1
+go 1.21.5
 
 require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
@@ -23,6 +23,7 @@ require (
 )
 
 require (
+	github.com/Homeppv2/entitys v0.0.0-20240328163721-e8d5cfed94fd
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.1
 	github.com/andybalholm/brotli v1.0.5 // indirect

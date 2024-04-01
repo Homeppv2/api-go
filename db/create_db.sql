@@ -61,3 +61,24 @@ CREATE TABLE IF NOT EXISTS messanges_contollers_enviroment
     fire INTEGER,
     smoke INTEGER
 );
+
+CREATE TABLE IF NOT EXISTS messanges_contollers_smokeandfire
+(
+    id_messange references messanges(id_messange),
+    smoke INTEGER,
+    fire1 INTEGER, 
+    fire2 INTEGER,
+    fire3 INTEGER,
+    fire4 INTEGER,
+    illumination INTEGER
+);
+
+CREATE TABLE IF NOT EXISTS messanges_contollers_carbondioxide
+(
+    id_messange references messanges(id_messange),
+    temperature INTEGER,
+    humidity INTEGER, 
+    pressure INTEGER,
+    carbone INTEGER
+);
+
