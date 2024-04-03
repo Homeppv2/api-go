@@ -2,105 +2,63 @@ package service
 
 import (
 	"context"
+	"github.com/Homeppv2/api-go/internal/database"
 
-	controllerpkg "api-go/internal/controller"
-	"api-go/internal/entity"
-	infrastructure2 "api-go/internal/service/infrastructure"
-	"api-go/pkg/errors"
+	"github.com/Homeppv2/entitys"
 )
 
 type (
 	ControllerService struct {
-		controllerRepo infrastructure2.ControllerGateway
-		userRepo       infrastructure2.UserGateway
+		base database.DatabaseInterface
 	}
 )
 
-func NewControllerService(controllerRepo infrastructure2.ControllerGateway, userRepo infrastructure2.UserGateway) *ControllerService {
+func NewControllerService(base database.DatabaseInterface) *ControllerService {
 	return &ControllerService{
-		controllerRepo: controllerRepo,
-		userRepo:       userRepo,
+		base : base,
 	}
 }
 
-func (s *ControllerService) Create(ctx context.Context, hwKey string) (res entity.Controller, err error) {
-	_, err = s.controllerRepo.GetByHwKey(ctx, hwKey)
-	if err != errors.ErrControllerNotFound {
-		if err == nil {
-			return entity.Controller{}, errors.HandleServiceError(errors.ErrControllerAlreadyExist)
-		}
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	res, err = s.controllerRepo.Create(ctx, entity.CreateControllerDTO{HwKey: hwKey, IsUsed: false})
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
-
+func (c *ControllerService) GetListMessangesFromIdForUserId(ctx context.Context, count int, from int, userID int) (msg []entitys.MessangeTypeZiroJson, err error) {
+	msg, err = c.base.GetListMessangesFromIdForUserId(ctx, count, from, userID)
+	return
 }
 
-func (s *ControllerService) GetByID(ctx context.Context, id int64) (res entity.Controller, err error) {
-	res, err = s.controllerRepo.GetByID(ctx, id)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
+func (c *ControllerService) GetIdControllerByTypeAndNumber(ctx context.Context, type_, number_ int) (id int, err error) {
+	id, err = c.base.GetIdController(ctx, type_, number_)
+	return
+}
+func (c *ControllerService)	CreateMessageTypeOne(ctx context.Context, msg entitys.MessageTypeOneJSON) (err error) {
+	id, err := c.GetIdControllerByTypeAndNumber(ctx, msg.Type, msg.Number)
+	err = c.base.CreateMessangeControllerTypeOne(ctx, id, entitys.MainMessangesData{Id_contorller:id, Status_controller: msg.Status, Charge_controller: msg.Charge, Temperature_MK_controller: msg.Temperature_MK}, entitys.ContollersLeackMessangesData{Leack: msg.Controlerleack.Leack})
+	return
 }
 
-func (s *ControllerService) GetByHwKey(ctx context.Context, hwKey string) (res entity.Controller, err error) {
-	res, err = s.controllerRepo.GetByHwKey(ctx, hwKey)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
 
-	return res, nil
+func (c *ControllerService)	CreateMessageTypeTwo(ctx context.Context, msg entitys.MessageTypeTwoJSON) (err error) {
+	id, err := c.GetIdControllerByTypeAndNumber(ctx, msg.Type, msg.Number)
+	err = c.base.CreateMessangeControllerTypeTwo(ctx, id, entitys.MainMessangesData{Id_contorller:id, Status_controller: msg.Status, Charge_controller: msg.Charge, Temperature_MK_controller: msg.Temperature_MK}, 
+		entitys.ContollersModuleMessangesData{Humidity: msg.Controlermodule.Humidity, Temperature: msg.Controlermodule.Temperature, Pressure: msg.Controlermodule.Pressure, Gas: msg.Controlermodule.Gas})
+	return
 }
 
-func (s *ControllerService) GetByIsUsedBy(ctx context.Context, isUsedBy int64) (res []entity.Controller, err error) {
-	_, err = s.userRepo.GetByID(ctx, isUsedBy)
-	if err != nil {
-		return []entity.Controller{}, errors.HandleServiceError(err)
-	}
 
-	res, err = s.controllerRepo.GetByIsUsedBy(ctx, isUsedBy)
-	if err != nil {
-		return []entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
+func (c *ControllerService) CreateMessageTypeThree(ctx context.Context, msg entitys.MessageTypeThreeJSON) (err error) {
+	id, err := c.GetIdControllerByTypeAndNumber(ctx, msg.Type, msg.Number)
+	err = c.base.CreateMessangeControllerTypeThree(ctx, id, entitys.MainMessangesData{Id_contorller:id, Status_controller: msg.Status, Charge_controller: msg.Charge, Temperature_MK_controller: msg.Temperature_MK}, 
+		entitys.ControlerEnviromentDataMessange{Humidity: msg.Controlerenviroment.Humidity,
+			 Temperature: msg.Controlerenviroment.Temperature,
+			 Pressure: msg.Controlerenviroment.Pressure,
+			 Gas1: msg.Controlerenviroment.Gas1, 
+			 Gas2: msg.Controlerenviroment.Gas2,
+			 Gas3: msg.Controlerenviroment.Gas3,
+			 Pm1: msg.Controlerenviroment.Pm1,
+			 Pm10: msg.Controlerenviroment.Pm10,
+			 Pm25: msg.Controlerenviroment.Pm25,
+			 Fire: msg.Controlerenviroment.Fire,
+			 Smoke: msg.Controlerenviroment.Smoke,
+			})
+	return
 }
 
-func (s *ControllerService) UpdateIsUsed(ctx context.Context, req entity.UpdateControllerIsUsedByRequest) (res entity.Controller, err error) {
-	if req.IsUsedBy.Valid {
-		_, err = s.userRepo.GetByID(ctx, req.IsUsedBy.ValueOrZero())
-		if err != nil {
-			return entity.Controller{}, errors.HandleServiceError(err)
-		}
-	}
 
-	res, err = s.controllerRepo.GetByID(ctx, req.ID)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	res, err = s.controllerRepo.UpdateIsUsed(ctx, req)
-	if err != nil {
-		return entity.Controller{}, errors.HandleServiceError(err)
-	}
-
-	return res, nil
-}
-
-func (s *ControllerService) Delete(ctx context.Context, id int64) (err error) {
-	err = s.controllerRepo.Delete(ctx, id)
-	if err != nil {
-		return errors.HandleServiceError(err)
-	}
-
-	return nil
-}
-
-var _ controllerpkg.ControllerService = (*ControllerService)(nil)

@@ -1,6 +1,8 @@
 package main
 
-import "api-go/internal/app"
+import (
+	"github.com/Homeppv2/api-go/internal/app"
+)
 
 func main() {
 	app.Run()
