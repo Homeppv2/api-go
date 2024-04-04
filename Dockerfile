@@ -16,7 +16,7 @@ RUN apt update
 
 WORKDIR /app
 
-COPY --from=build /application/db . 
+# COPY --from=build /application/db . 
 COPY --from=build /application/server ./server
 #COPY ./entrypoint.sh /usr/bin/entrypoint.sh
 #ENTRYPOINT [ "entrypoint.sh" ]

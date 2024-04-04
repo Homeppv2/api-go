@@ -3,6 +3,7 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -36,10 +37,6 @@ func NewRouter(host string, port string, serviceuser service.UserServiceInterfac
 
 func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
-	if r.Method != "POST" {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-		return
-	}
 	// проверка на валидность емайла
 	var email = r.Header.Get("email")
 	var password = r.Header.Get("password")
@@ -57,35 +54,25 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
-	err = conn.Ping(ctx)
-	if err != nil {
-		w.WriteHeader(http.StatusBadGateway)
-		return
-	}
 	user.HashPassword = ""
 	data, err := json.Marshal(&user)
 	conn.Write(ctx, websocket.MessageText, data)
-	ct := conn.CloseRead(context.Background())
-	var closed bool = true
-	go func() {
-		<-ct.Done()
-		closed = false
-		return
-
-	}()
 	ctrl, err := s.UserService.GetControllersByUserId(ctx, user.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	log.Println("количество контролеров у пользователя ", len(ctrl))
 	var buffer chan []byte = make(chan []byte, 100)
 	for i := 0; i < len(ctrl); i++ {
 		go s.EventSubsripter.SubscribeMessange(ctx, strconv.Itoa(ctrl[i].Id_contorller), buffer)
 	}
 	go func() {
 		for tmp := range buffer {
+			log.Println("надо передать данные на пользователя ")
 			var msg entitys.MessangeTypeZiroJson
 			json.Unmarshal(tmp, &msg)
+			log.Println(msg)
 			var ans entitys.MessageFromFrontendJSON
 			ans.Id = 801
 			ans.Msgs = append(ans.Msgs, msg)
@@ -93,14 +80,17 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 			conn.Write(ctx, websocket.MessageText, tmp)
 		}
 	}()
-	for closed {
+	for {
 		msgtype, binry, err := conn.Read(ctx)
 		if err != nil || msgtype != websocket.MessageText {
-			conn.Write(ctx, websocket.MessageText, []byte("error sending data (type or connection)"))
+			err = conn.Write(ctx, websocket.MessageText, []byte("error sending data (type or connection)"))
+			if err != nil {
+				conn.Close(websocket.StatusBadGateway, "error")
+				return
+			}
 			continue
 		}
 		var msg entitys.MessageFromFrontendJSON
-
 		err = json.Unmarshal(binry, &msg)
 		if err != nil {
 			conn.Write(ctx, websocket.MessageText, []byte("ivalide json data"))

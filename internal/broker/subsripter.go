@@ -8,12 +8,14 @@ import (
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 )
 
+var queueSuffix = "ctrls"
+
 type EventSubsripter struct {
 	subscriber *amqp.Subscriber
 }
 
 func NewEventSubsripter(amqpURI string) (*EventSubsripter, error) {
-	amqpConfig := amqp.NewDurableQueueConfig(amqpURI)
+	amqpConfig := amqp.NewDurablePubSubConfig(amqpURI, amqp.GenerateQueueNameTopicNameWithSuffix(queueSuffix))
 	subscriber, err := amqp.NewSubscriber(amqpConfig, watermill.NewStdLogger(true, true))
 	if err != nil {
 		log.Fatalf("Connection to amqp failed: %v", err)

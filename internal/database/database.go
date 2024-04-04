@@ -47,23 +47,14 @@ func (r *Database) GetUserByID(ctx context.Context, id int) (res entitys.User, e
 		FROM users
 		WHERE id = $1`
 
-	tx, err := r.pool.Begin(context.Background())
-	if err != nil {
-		return entitys.User{}, err
-	}
-	rows, err := tx.Query(context.Background(), q, id)
-	if err != nil {
-		tx.Rollback(context.Background())
-		return entitys.User{}, err
-	}
-	defer rows.Close()
-	err = tx.Commit(context.Background())
+	rows, err := r.pool.Query(context.Background(), q, id)
 	if err != nil {
 		return entitys.User{}, err
 	}
 	if rows.Next() {
 		rows.Scan(&res.ID, &res.Username, &res.Email, &res.HashPassword)
 	}
+	defer rows.Close()
 	return res, nil
 }
 
@@ -71,22 +62,13 @@ func (r *Database) GetUserByEmail(ctx context.Context, email string) (res entity
 	q := `
 		SELECT id, username, email, hash_password
 		FROM users
-		WHERE email = $1`
+		WHERE email = $1;`
 
-	tx, err := r.pool.Begin(context.Background())
+	rows, err := r.pool.Query(context.Background(), q, email)
 	if err != nil {
-		return entitys.User{}, err
-	}
-	rows, err := tx.Query(context.Background(), q, email)
-	if err != nil {
-		tx.Rollback(context.Background())
 		return entitys.User{}, err
 	}
 	defer rows.Close()
-	err = tx.Commit(context.Background())
-	if err != nil {
-		return entitys.User{}, err
-	}
 	if rows.Next() {
 		rows.Scan(&res.ID, &res.Username, &res.Email, &res.HashPassword)
 	}
@@ -95,14 +77,9 @@ func (r *Database) GetUserByEmail(ctx context.Context, email string) (res entity
 
 func (r *Database) GetIdController(ctx context.Context, type_ int, number int) (id int, err error) {
 	q := `
-		SELECT id_contorller from contollers where type_controller=$1 and number_controller=$2;
+		SELECT id_controller from controllers where type_controller=$1 and number_controller=$2;
 		`
-	con, err := r.pool.Acquire(context.Background())
-	if err != nil {
-		id = -1
-		return -1, err
-	}
-	rows, err := con.Query(context.Background(), q, type_, number)
+	rows, err := r.pool.Query(context.Background(), q, type_, number)
 	if err != nil {
 		id = -1
 		return -1, err
@@ -111,132 +88,94 @@ func (r *Database) GetIdController(ctx context.Context, type_ int, number int) (
 	if rows.Next() {
 		rows.Scan(&id)
 		return
-	}
-	q = `
-	INSERT INTO controllers (type_controller, number_controller)
-	VALUES ($1, $2)
-	RETURNING id;
-	`
-	tx, err := r.pool.Begin(context.Background())
-	if err != nil {
-		return
-	}
-	rows, err = tx.Query(context.Background(), q, type_, number)
-	if err != nil {
-		return
-	}
-	defer rows.Close()
-	if rows.Next() {
-		rows.Scan(&id)
 	}
 	return
 }
 
 func (r *Database) CreateMessangeControllerTypeOne(ctx context.Context, idController int, main entitys.MainMessangesData, add entitys.ContollersLeackMessangesData) (err error) {
 	q := `
-	INSERT INTO messanges (id_contorller, status_controller, charge_controller, temperature_MK_controller)
+	INSERT INTO messanges (id_controller, status_controller, charge_controller, temperature_MK_controller)
 	VALUES ($1, $2, $3, $4) RETURNING id_messange;
 
 	`
-	tx, err := r.pool.Begin(context.Background())
-	if err != nil {
-		return
-	}
 	var id int
-	rows, err := tx.Query(context.Background(), q, idController, main.Status_controller, main.Charge_controller, main.Temperature_MK_controller)
+	rows, err := r.pool.Query(context.Background(), q, idController, main.Status_controller, main.Charge_controller, main.Temperature_MK_controller)
 	if err != nil {
 		return
 	}
-	defer rows.Close()
 	if rows.Next() {
 		rows.Scan(&id)
 	}
+	rows.Close()
 	q = `
-	INSERT INTO messanges (id_messange, leack)
+	INSERT INTO messanges_controllers_leack (id_messange, leack)
 	VALUES ($1, $2);
 	`
-	rows, err = tx.Query(context.Background(), q, id, add.Leack)
+	rows, err = r.pool.Query(context.Background(), q, id, add.Leack)
 	if err != nil {
-		tx.Rollback(context.Background())
 		return
 	}
-	defer rows.Close()
-	err = tx.Commit(context.Background())
+	rows.Close()
 	return
 }
 
 func (r *Database) CreateMessangeControllerTypeTwo(ctx context.Context, idController int, main entitys.MainMessangesData, add entitys.ContollersModuleMessangesData) (err error) {
 	q := `
-	INSERT INTO messanges (id_contorller, status_controller, charge_controller, temperature_MK_controller)
+	INSERT INTO messanges (id_controller, status_controller, charge_controller, temperature_MK_controller)
 	VALUES ($1, $2, $3, $4) RETURNING id_messange;
 
 	`
-	tx, err := r.pool.Begin(context.Background())
-	if err != nil {
-		return
-	}
 	var id int
-	rows, err := tx.Query(context.Background(), q, idController, main.Status_controller, main.Charge_controller, main.Temperature_MK_controller)
+	rows, err := r.pool.Query(context.Background(), q, idController, main.Status_controller, main.Charge_controller, main.Temperature_MK_controller)
 	if err != nil {
 		return
 	}
-	defer rows.Close()
 	if rows.Next() {
 		rows.Scan(&id)
 	}
+	rows.Close()
 	q = `
-	INSERT INTO messanges_contollers_module (id_messange, temperature, humidity, pressure, gas)
+	INSERT INTO messanges_controllers_module (id_messange, temperature, humidity, pressure, gas)
 	VALUES ($1, $2, $3, $4, $5);
 	`
-	rows, err = tx.Query(context.Background(), q, id, add.Temperature, add.Humidity, add.Pressure, add.Gas)
+	rows, err = r.pool.Query(context.Background(), q, id, add.Temperature, add.Humidity, add.Pressure, add.Gas)
 	if err != nil {
-		tx.Rollback(context.Background())
 		return
 	}
-	defer rows.Close()
-	err = tx.Commit(context.Background())
+	rows.Close()
 	return
 }
 
 func (r *Database) CreateMessangeControllerTypeThree(ctx context.Context, idController int, main entitys.MainMessangesData, add entitys.ControlerEnviromentDataMessange) (err error) {
 	q := `
-	INSERT INTO messanges (id_contorller, status_controller, charge_controller, temperature_MK_controller)
+	INSERT INTO messanges (id_controller, status_controller, charge_controller, temperature_MK_controller)
 	VALUES ($1, $2, $3, $4) RETURNING id_messange;
 
 	`
-	tx, err := r.pool.Begin(context.Background())
-	if err != nil {
-		return
-	}
 	var id int
-	rows, err := tx.Query(context.Background(), q, idController, main.Status_controller, main.Charge_controller, main.Temperature_MK_controller)
+	rows, err := r.pool.Query(context.Background(), q, idController, main.Status_controller, main.Charge_controller, main.Temperature_MK_controller)
 	if err != nil {
 		return
 	}
-	defer rows.Close()
 	if rows.Next() {
 		rows.Scan(&id)
 	}
+	rows.Close()
 	q = `
-	INSERT INTO messanges (id_messange, temperature, humidity, pressure, VOC, gas1, gas2, gas3, pm1, pm25, pm10, fire, smoke)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12);
+	INSERT INTO messanges_controllers_enviroment (id_messange, temperature, humidity, pressure, VOC, gas1, gas2, gas3, pm1, pm25, pm10, fire, smoke)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
 	`
-	rows, err = tx.Query(context.Background(), q, id, add.Temperature, add.Humidity, add.Pressure, add.Voc, add.Gas1, add.Gas2, add.Gas3, add.Pm1, add.Pm25, add.Pm10, add.Fire, add.Smoke)
-	if err != nil {
-		tx.Rollback(context.Background())
-		return
-	}
-	defer rows.Close()
-	err = tx.Commit(context.Background())
+	rows, err = r.pool.Query(context.Background(), q, id, add.Temperature, add.Humidity, add.Pressure, add.Voc, add.Gas1, add.Gas2, add.Gas3, add.Pm1, add.Pm25, add.Pm10, add.Fire, add.Smoke)
+	rows.Close()
 	return
 }
 
 func (r *Database) GetListMessangesFromIdForUserId(ctx context.Context, count int, from int, userID int) (msg []entitys.MessangeTypeZiroJson, err error) {
 	q := `
 	WITH ctrls as (
-		SELECT id_contorller from user_conttollers where id_user = $1
+		SELECT id_controller from user_controllers where id_user = $1
 	)
-	SELECT id_messange, id_contorller, status_controller, charge_controller, temperature_MK_controller from messanges where id_messange >= $2 and id_contorller = ctrl.id_contorller ORDER BY id_messange limit $3;
+	SELECT id_messange, id_controller, status_controller, charge_controller, temperature_MK_controller from messanges where id_messange >= $2 and id_contorller = ctrl.id_contorller ORDER BY id_messange limit $3;
 	`
 	conn, err := r.pool.Acquire(context.Background())
 	rows, err := conn.Query(context.Background(), q, userID, from, count)
@@ -249,7 +188,7 @@ func (r *Database) GetListMessangesFromIdForUserId(ctx context.Context, count in
 	rows.Close()
 	for _, v := range msgs {
 		q = `
-		SELECT type_controller, number_controller from contollers where id_contorller = $1;
+		SELECT type_controller, number_controller from contollers where id_controller = $1;
 		`
 		rows, err = conn.Query(context.Background(), q, v.Id_contorller)
 		var type_ctrl, nmbr_ctrl int
@@ -280,7 +219,7 @@ func (r *Database) GetListMessangesFromIdForUserId(ctx context.Context, count in
 			break
 		case 11:
 			q = `
-				SELECT temperature, humidity, pressure, gas from messanges_contollers_module where id_messange = $1;
+				SELECT temperature, humidity, pressure, gas from messanges_controllers_module where id_messange = $1;
 				`
 			var module entitys.ControlerModuleDataMessange
 			rows, err = conn.Query(context.Background(), q, v.Id_messange)
@@ -300,7 +239,7 @@ func (r *Database) GetListMessangesFromIdForUserId(ctx context.Context, count in
 			break
 		case 12:
 			q = `
-				SELECT temperature, humidity, pressure, VOC, gas1, gas2, gas3, pm1, pm25, pm10, fire, smoke from messanges_contollers_enviroment where id_messange = $1;
+				SELECT temperature, humidity, pressure, VOC, gas1, gas2, gas3, pm1, pm25, pm10, fire, smoke from messanges_controllers_enviroment where id_messange = $1;
 				`
 			var env entitys.ControlerEnviromentDataMessange
 			rows, err = conn.Query(context.Background(), q, v.Id_messange)
@@ -326,7 +265,7 @@ func (r *Database) GetListMessangesFromIdForUserId(ctx context.Context, count in
 
 func (r *Database) GetControllerById(ctx context.Context, controller_id int) (controller entitys.ControllersData, err error) {
 	q := `
-	SELECT id_contorller, type_controller, number_controller from contollers where id_contorller = $1;
+	SELECT id_controller, type_controller, number_controller from controllers where id_controller = $1;
 	`
 	rows, err := r.pool.Query(ctx, q, controller_id)
 	if err != nil {
@@ -335,12 +274,13 @@ func (r *Database) GetControllerById(ctx context.Context, controller_id int) (co
 	if rows.Next() {
 		rows.Scan(&controller.Id_contorller, &controller.Number_controller, &controller.Type_controller)
 	}
+	rows.Close()
 	return
 }
 
 func (r *Database) GetListControllersByUserId(ctx context.Context, user_id int) (controllers []entitys.ControllersData, err error) {
 	q := `
-	SELECT id_contorller from user_conttollers where id_user = $1;
+	SELECT id_controller from user_controllers where id_user = $1;
 	`
 	var id_ctrls []int
 	rows, err := r.pool.Query(ctx, q, user_id)
@@ -352,6 +292,7 @@ func (r *Database) GetListControllersByUserId(ctx context.Context, user_id int) 
 		rows.Scan(&id)
 		id_ctrls = append(id_ctrls, id)
 	}
+	rows.Close()
 	for i := 0; i < len(id_ctrls); i++ {
 		tmp, err := r.GetControllerById(ctx, id_ctrls[i])
 		if err != nil {
