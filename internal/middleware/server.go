@@ -40,6 +40,9 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	// проверка на валидность емайла
 	var email = r.Header.Get("email")
 	var password = r.Header.Get("password")
+	log.Println(email)
+	log.Println(password)
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	user, err := s.UserService.GetByEmail(ctx, email)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
