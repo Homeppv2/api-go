@@ -26,7 +26,11 @@ func NewRouter(host string, port string, serviceuser service.UserServiceInterfac
 	r := &Router{UserService: serviceuser, ControllerService: servicecontroller, Hasher: hasher, EventSubsripter: broker}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login", r.login)
+	mux.HandleFunc("/login/", r.login)
+
 	mux.HandleFunc("/regsiter", r.register)
+	mux.HandleFunc("/regsiter/", r.register)
+
 	mux.HandleFunc("/getidcontroller", r.getidcontroller)
 	r.Server = &http.Server{
 		Addr:    host + ":" + port,
