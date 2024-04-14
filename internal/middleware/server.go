@@ -50,7 +50,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	var login entitys.RequestAuth
 	for {
 		_, data, err = conn.Read(ctx)
-		if err != nil {
+		if err == nil {
 			break
 		}
 	}
