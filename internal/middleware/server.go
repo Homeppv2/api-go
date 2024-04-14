@@ -41,9 +41,26 @@ func NewRouter(host string, port string, serviceuser service.UserServiceInterfac
 
 func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{InsecureSkipVerify: true})
+	if err != nil {
+		w.WriteHeader(http.StatusBadGateway)
+		return
+	}
+	var data []byte
+	var login entitys.RequestAuth
+	_, data, err = conn.Read(ctx)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	err = json.Unmarshal(data, &login)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	// проверка на валидность емайла
-	var email = r.Header.Get("email")
-	var password = r.Header.Get("password")
+	var email = login.Email
+	var password = login.Password
 	log.Println(email)
 	log.Println(password)
 	w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -56,13 +73,8 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{InsecureSkipVerify: true})
-	if err != nil {
-		w.WriteHeader(http.StatusBadGateway)
-		return
-	}
 	user.HashPassword = ""
-	data, err := json.Marshal(&user)
+	data, err = json.Marshal(&user)
 	conn.Write(ctx, websocket.MessageText, data)
 	ctrl, err := s.UserService.GetControllersByUserId(ctx, user.ID)
 	if err != nil {
