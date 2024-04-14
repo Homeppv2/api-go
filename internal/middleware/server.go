@@ -75,8 +75,11 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	user.HashPassword = ""
-	data, err = json.Marshal(&user)
-	conn.Write(ctx, websocket.MessageText, data)
+	data, _ = json.Marshal(&user)
+	err = conn.Write(ctx, websocket.MessageText, data)
+	if err != nil {
+		return
+	}
 	ctrl, err := s.UserService.GetControllersByUserId(ctx, user.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -106,7 +109,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 			err = conn.Write(ctx, websocket.MessageText, []byte("error sending data (type or connection)"))
 			if err != nil {
 				conn.Close(websocket.StatusBadGateway, "error")
-				return
+				break
 			}
 			continue
 		}
@@ -114,7 +117,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		err = json.Unmarshal(binry, &msg)
 		if err != nil {
 			conn.Write(ctx, websocket.MessageText, []byte("ivalide json data"))
-			continue
+			break
 		}
 		switch msg.Id {
 		case 600:
@@ -132,12 +135,11 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 				break
 			}
 			conn.Write(ctx, websocket.MessageText, bin)
-			break
 		default:
 			conn.Write(ctx, websocket.MessageText, []byte("error code json msg"))
-			break
 		}
 	}
+	close(buffer)
 }
 
 func (s *Router) register(w http.ResponseWriter, r *http.Request) {
