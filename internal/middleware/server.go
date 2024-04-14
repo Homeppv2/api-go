@@ -48,10 +48,11 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	}
 	var data []byte
 	var login entitys.RequestAuth
-	_, data, err = conn.Read(ctx)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		return
+	for {
+		_, data, err = conn.Read(ctx)
+		if err != nil {
+			break
+		}
 	}
 	err = json.Unmarshal(data, &login)
 	if err != nil {
