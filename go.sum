@@ -1,5 +1,7 @@
 github.com/Homeppv2/entitys v0.0.0-20240414182336-64a38be84d08 h1:LQlXnjaPMWQB9FxrzWhSOSGOz85UaVY77LqzWnDTNs8=
 github.com/Homeppv2/entitys v0.0.0-20240414182336-64a38be84d08/go.mod h1:bVmG+NKL1licLS+Xk88GGBVuFCcI2TB1v5NawGJ/yXQ=
+github.com/Homeppv2/entitys v0.0.0-20240420220521-4b3cbd6e8c80 h1:PRJpnjQ5v/0tyJRbs/fsh+RzHyFLmm1VFbgFEfsXevI=
+github.com/Homeppv2/entitys v0.0.0-20240420220521-4b3cbd6e8c80/go.mod h1:bVmG+NKL1licLS+Xk88GGBVuFCcI2TB1v5NawGJ/yXQ=
 github.com/ThreeDotsLabs/watermill v1.3.5 h1:50JEPEhMGZQMh08ct0tfO1PsgMOAOhV3zxK2WofkbXg=
 github.com/ThreeDotsLabs/watermill v1.3.5/go.mod h1:O/u/Ptyrk5MPTxSeWM5vzTtZcZfxXfO9PK9eXTYiFZY=
 github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.1 h1:OxvMB2/3YtcQuC7quC+CGmFpGz9oaxP2ef5wkp+R2oM=
@@ -13,6 +15,8 @@ github.com/gofiber/fiber/v2 v2.52.4 h1:P+T+4iK7VaqUsq2PALYEfBBo6bJZ4q3FP8cZ84Egg
 github.com/gofiber/fiber/v2 v2.52.4/go.mod h1:KEOE+cXMhXG0zHc9d8+E38hoX+ZN7bhOtgeF2oT6jrQ=
 github.com/golang-migrate/migrate/v4 v4.17.0 h1:rd40H3QXU0AA4IoLllFcEAEo9dYKRHYND2gB4p7xcaU=
 github.com/golang-migrate/migrate/v4 v4.17.0/go.mod h1:+Cp2mtLP4/aXDTKb9wmXYitdrNx2HGs45rbWAo6OsKM=
+github.com/golang-migrate/migrate/v4 v4.17.1 h1:4zQ6iqL6t6AiItphxJctQb3cFqWiSpMnX7wLTPnnYO4=
+github.com/golang-migrate/migrate/v4 v4.17.1/go.mod h1:m8hinFyWBn0SA4QKHuKh175Pm9wjmxj3S2Mia7dbXzM=
 github.com/golang/protobuf v1.3.1/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.3.2/go.mod h1:6lQm79b+lXiMfvg/cZm0SGofjICqVBUtrP5yJMmIC1U=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=

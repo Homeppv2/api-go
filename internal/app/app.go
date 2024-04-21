@@ -8,7 +8,6 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/Homeppv2/api-go/internal/broker"
 	"github.com/Homeppv2/api-go/internal/database"
 	"github.com/Homeppv2/api-go/internal/middleware"
 	"github.com/Homeppv2/api-go/internal/service"
@@ -43,18 +42,6 @@ func Run() {
 	}
 
 	l.Info("success connecting to postgresql")
-	uriBroker := fmt.Sprintf("%s://%s:%s@%s:%s",
-		os.Getenv("BROKER_PROTOCOL"),
-		os.Getenv("BROKER_USERNAME"),
-		os.Getenv("BROKER_PASSWORD"),
-		os.Getenv("BROKER_HOST"),
-		os.Getenv("BROKER_PORT"),
-	)
-	eventSubsripter, err := broker.NewEventSubsripter(uriBroker)
-	if err != nil {
-		l.Info("failed to ping to rabbit: ", err.Error())
-		return
-	}
 	// hasher
 	h := hasher.NewHasher()
 	base := database.NewDatabase(db)
@@ -139,7 +126,7 @@ func Run() {
 
 	// controllers
 
-	r := middleware.NewRouter(os.Getenv("API_HOST"), os.Getenv("API_PORT"), userService, controllerService, eventSubsripter, h)
+	r := middleware.NewRouter(os.Getenv("API_HOST"), os.Getenv("API_PORT"), userService, controllerService, h)
 
 	var ctrl []int
 	rows, err := db.Query(context.Background(), "select id_controller from controllers;")

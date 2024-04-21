@@ -4,7 +4,7 @@ go 1.21.5
 
 require (
 	github.com/gofiber/fiber/v2 v2.52.4
-	github.com/golang-migrate/migrate/v4 v4.17.0
+	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/jackc/pgx/v5 v5.5.5
 	golang.org/x/crypto v0.22.0
 )
@@ -29,7 +29,7 @@ require (
 )
 
 require (
-	github.com/Homeppv2/entitys v0.0.0-20240414182336-64a38be84d08
+	github.com/Homeppv2/entitys v0.0.0-20240420220521-4b3cbd6e8c80
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.1
 	github.com/golang/protobuf v1.5.4 // indirect

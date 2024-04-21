@@ -302,3 +302,21 @@ func (r *Database) GetListControllersByUserId(ctx context.Context, user_id int) 
 	}
 	return
 }
+
+func (r *Database) GetListContorllers(ctx context.Context) (controllers []entitys.ControllersData, err error) {
+	q := `
+	SELECT id_controller from controllers;
+	`
+	rows, err := r.pool.Query(ctx, q)
+	if err != nil {
+		return nil, err
+	}
+	if rows.Next() {
+		var ctrl entitys.ControllersData
+		rows.Scan(&ctrl.Id_contorller)
+		controllers = append(controllers, ctrl)
+	}
+	rows.Close()
+	return
+
+}

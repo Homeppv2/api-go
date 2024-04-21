@@ -3,8 +3,10 @@ package middleware
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/Homeppv2/api-go/internal/broker"
@@ -19,11 +21,18 @@ type Router struct {
 	UserService       service.UserServiceInterface
 	ControllerService service.ControllerServiceInterface
 	Hasher            hasher.Interactor
-	EventSubsripter   *broker.EventSubsripter
 }
 
-func NewRouter(host string, port string, serviceuser service.UserServiceInterface, servicecontroller service.ControllerServiceInterface, broker *broker.EventSubsripter, hasher hasher.Interactor) *Router {
-	r := &Router{UserService: serviceuser, ControllerService: servicecontroller, Hasher: hasher, EventSubsripter: broker}
+var uriBroker = fmt.Sprintf("%s://%s:%s@%s:%s",
+	os.Getenv("BROKER_PROTOCOL"),
+	os.Getenv("BROKER_USERNAME"),
+	os.Getenv("BROKER_PASSWORD"),
+	os.Getenv("BROKER_HOST"),
+	os.Getenv("BROKER_PORT"),
+)
+
+func NewRouter(host string, port string, serviceuser service.UserServiceInterface, servicecontroller service.ControllerServiceInterface, hasher hasher.Interactor) *Router {
+	r := &Router{UserService: serviceuser, ControllerService: servicecontroller, Hasher: hasher}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/login", r.login)
 	mux.HandleFunc("/login/", r.login)
@@ -56,7 +65,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	}
 	err = json.Unmarshal(data, &login)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		conn.Close(http.StatusBadRequest, "user invalide "+err.Error())
 		return
 	}
 	// проверка на валидность емайла
@@ -67,13 +76,14 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	user, err := s.UserService.GetByEmail(ctx, email)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		conn.Close(http.StatusBadRequest, "user invalide "+err.Error())
 		return
 	}
 	if !s.Hasher.CompareAndHash(user.HashPassword, password) {
-		w.WriteHeader(http.StatusBadRequest)
+		conn.Close(http.StatusBadRequest, "user invalide")
 		return
 	}
+	hp := user.HashPassword
 	user.HashPassword = ""
 	data, _ = json.Marshal(&user)
 	err = conn.Write(ctx, websocket.MessageText, data)
@@ -82,13 +92,27 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	}
 	ctrl, err := s.UserService.GetControllersByUserId(ctx, user.ID)
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		conn.Close(http.StatusInternalServerError, "getting controller error "+err.Error())
 		return
 	}
 	log.Println("количество контролеров у пользователя ", len(ctrl))
 	var buffer chan []byte = make(chan []byte, 100)
+	var gets []chan bool
+	var eventSubsripter *broker.EventSubsripter
+	eventSubsripter, err = broker.NewEventSubsripter(uriBroker)
+	if err != nil {
+		log.Println("ошибка открытия uri " + uriBroker + " - " + err.Error())
+		conn.Close(http.StatusInternalServerError, "rabbit error "+err.Error())
+		return
+	}
 	for i := 0; i < len(ctrl); i++ {
-		go s.EventSubsripter.SubscribeMessange(ctx, strconv.Itoa(ctrl[i].Id_contorller), buffer)
+		end := make(chan bool)
+		err := eventSubsripter.SubscribeMessange(ctx, strconv.Itoa(ctrl[i].Id_contorller), buffer, end)
+		if err != nil {
+			log.Println("ошибка подписки на " + strconv.Itoa(ctrl[i].Id_contorller) + " - " + err.Error())
+			continue
+		}
+		gets = append(gets, end)
 	}
 	go func() {
 		for tmp := range buffer {
@@ -96,6 +120,9 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 			var msg entitys.MessangeTypeZiroJson
 			json.Unmarshal(tmp, &msg)
 			log.Println(msg)
+			if msg.RequestAuth == nil || !s.Hasher.CompareAndHash(hp, msg.RequestAuth.Password) || msg.RequestAuth.Email != user.Email {
+				continue
+			}
 			var ans entitys.MessageFromFrontendJSON
 			ans.Id = 801
 			ans.Msgs = append(ans.Msgs, msg)
@@ -105,26 +132,25 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	}()
 	for {
 		msgtype, binry, err := conn.Read(ctx)
-		if err != nil || msgtype != websocket.MessageText {
-			err = conn.Write(ctx, websocket.MessageText, []byte("error sending data (type or connection)"))
-			if err != nil {
-				conn.Close(websocket.StatusBadGateway, "error")
-				break
-			}
+		if err != nil {
+			break
+		}
+		if msgtype != websocket.MessageText {
 			continue
 		}
 		var msg entitys.MessageFromFrontendJSON
 		err = json.Unmarshal(binry, &msg)
 		if err != nil {
-			conn.Write(ctx, websocket.MessageText, []byte("ivalide json data"))
-			break
+			err = conn.Write(ctx, websocket.MessageText, []byte("ivalide json data"))
+			if err != nil {
+				break
+			}
 		}
 		switch msg.Id {
 		case 600:
 			ansdata, err := s.ControllerService.GetListMessangesFromIdForUserId(ctx, msg.Rng.Count, msg.Rng.From, int(user.ID))
 			if err != nil {
 				conn.Write(ctx, websocket.MessageText, []byte("ivalide database select"))
-				break
 			}
 			var ans entitys.MessageFromFrontendJSON
 			ans.Id = 801
@@ -132,12 +158,21 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 			bin, err := json.Marshal(&ans)
 			if err != nil {
 				conn.Write(ctx, websocket.MessageText, []byte("ivalide json parsing selected data from database"))
+			}
+			err = conn.Write(ctx, websocket.MessageText, bin)
+			if err != nil {
 				break
 			}
-			conn.Write(ctx, websocket.MessageText, bin)
 		default:
-			conn.Write(ctx, websocket.MessageText, []byte("error code json msg"))
+			err = conn.Write(ctx, websocket.MessageText, []byte("error code json msg"))
+			if err != nil {
+				break
+			}
 		}
+	}
+	for i := 0; i < len(gets); i++ {
+		gets[i] <- true
+		close(gets[i])
 	}
 	close(buffer)
 }

@@ -23,15 +23,22 @@ func NewEventSubsripter(amqpURI string) (*EventSubsripter, error) {
 	return &EventSubsripter{subscriber}, nil
 }
 
-func (eventSubsripter *EventSubsripter) SubscribeMessange(ctx context.Context, topic string, data chan []byte) error {
+func (eventSubsripter *EventSubsripter) SubscribeMessange(ctx context.Context, topic string, data chan []byte, end chan bool) error {
 	message, err := eventSubsripter.subscriber.Subscribe(ctx, topic)
 	if err != nil {
 		return err
 	}
-
-	for msg := range message {
-		data <- msg.Payload
-		msg.Ack()
-	}
+	go func() {
+		for {
+			select {
+			case msg := <-message:
+				data <- msg.Payload
+				msg.Ack()
+				break
+			case <-end:
+				break
+			}
+		}
+	}()
 	return nil
 }

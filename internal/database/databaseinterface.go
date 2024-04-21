@@ -17,4 +17,5 @@ type DatabaseInterface interface {
 	GetListMessangesFromIdForUserId(ctx context.Context, count int, from int, userID int) (msg []entitys.MessangeTypeZiroJson, err error)
 	// GetListControllersByUserId(ctx context.Context, user_id int) (controllers []entitys.ControllersData, err error)
 	GetListControllersByUserId(ctx context.Context, user_id int) (controllers []entitys.ControllersData, err error)
+	GetListContorllers(ctx context.Context) (controllers []entitys.ControllersData, err error)
 }
