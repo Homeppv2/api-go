@@ -10,6 +10,6 @@ FROM ubuntu:22.04 as prod
 
 WORKDIR /app
 
-COPY --from=build /server .
+COPY --from=build ./server ./server
 
 CMD  ["/app/server"]
