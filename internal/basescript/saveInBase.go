@@ -1,4 +1,4 @@
-package basescript
+package main
 
 import (
 	"context"

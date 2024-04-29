@@ -1,4 +1,4 @@
-FROM golang:latest as build
+FROM golang:latest as bd
 
 WORKDIR /app
 
@@ -6,10 +6,14 @@ COPY . .
 
 RUN go build -o ./server ./internal/basescript/saveInBase.go
 
+
 FROM ubuntu:22.04
 
 WORKDIR /app
 
-COPY --from=build /app/server ./server
+COPY --from=bd /app/server ./server
+
+# RUN chmod +x ./server
 
 CMD  ["/app/server"]
+
