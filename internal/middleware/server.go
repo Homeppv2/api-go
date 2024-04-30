@@ -121,9 +121,11 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 			var msg entitys.MessangeTypeZiroJson
 			json.Unmarshal(tmp, &msg)
 			log.Println(msg)
-			if msg.RequestAuth == nil || !s.Hasher.CompareAndHash(hp, msg.RequestAuth.Password) || msg.RequestAuth.Email != user.Email {
-				continue
-			}
+			/*
+				if msg.RequestAuth == nil || !s.Hasher.CompareAndHash(hp, msg.RequestAuth.Password) || msg.RequestAuth.Email != user.Email {
+					continue
+				}
+			*/
 			var ans entitys.MessageFromFrontendJSON
 			ans.Id = 801
 			ans.Msgs = append(ans.Msgs, msg)
