@@ -96,7 +96,7 @@ func main() {
 				for i := 0; i < len(ctrls); i++ {
 					var end = make(chan bool)
 					sb.SubscribeMessange(context.Background(), strconv.Itoa(ctrls[i].Id_contorller), buffer, end)
-					ends2 = append(ends, end)
+					ends2 = append(ends2, end)
 				}
 				for i := 0; i < len(ends); i++ {
 					ends[i] <- true
