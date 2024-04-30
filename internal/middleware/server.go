@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"time"
 
 	"github.com/Homeppv2/api-go/internal/broker"
 	"github.com/Homeppv2/api-go/internal/service"
@@ -174,6 +175,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		gets[i] <- true
 		close(gets[i])
 	}
+	time.Sleep(5 * time.Second)
 	close(buffer)
 }
 

@@ -108,6 +108,7 @@ func main() {
 					ends[i] <- true
 					close(ends[i])
 				}
+				time.Sleep(5 * time.Second)
 				close(buffer)
 				break
 			}
