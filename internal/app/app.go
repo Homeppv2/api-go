@@ -66,7 +66,7 @@ func Run() {
 		return
 	}
 	row.Close()
-	row, err = db.Query(context.Background(), "insert into controllers(type_controller, number_controller) values ($1, $2) RETURNING id_controller;", 10, 1)
+	row, err = db.Query(context.Background(), "insert into controllers(type_controller, number_controller) values ($1, $2) RETURNING id_controller;", 16, 1)
 	if err != nil {
 		l.Debug("faled data insert: %s", err.Error())
 		return
@@ -78,7 +78,7 @@ func Run() {
 		return
 	}
 	row.Close()
-	row, err = db.Query(context.Background(), "insert into controllers(type_controller, number_controller) values ($1, $2) RETURNING id_controller;", 11, 1)
+	row, err = db.Query(context.Background(), "insert into controllers(type_controller, number_controller) values ($1, $2) RETURNING id_controller;", 17, 1)
 	if err != nil {
 		l.Debug("faled data insert: %s", err.Error())
 		return
@@ -90,7 +90,7 @@ func Run() {
 		return
 	}
 	row.Close()
-	row, err = db.Query(context.Background(), "insert into controllers(type_controller, number_controller) values ($1, $2) RETURNING id_controller;", 12, 1)
+	row, err = db.Query(context.Background(), "insert into controllers(type_controller, number_controller) values ($1, $2) RETURNING id_controller;", 18, 1)
 	if err != nil {
 		l.Debug("faled data insert: %s", err.Error())
 		return
