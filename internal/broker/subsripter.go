@@ -8,13 +8,11 @@ import (
 	"github.com/ThreeDotsLabs/watermill-amqp/v2/pkg/amqp"
 )
 
-var queueSuffix = "ctrls"
-
 type EventSubsripter struct {
 	subscriber *amqp.Subscriber
 }
 
-func NewEventSubsripter(amqpURI string) (*EventSubsripter, error) {
+func NewEventSubsripter(amqpURI, queueSuffix string) (*EventSubsripter, error) {
 	amqpConfig := amqp.NewDurablePubSubConfig(amqpURI, amqp.GenerateQueueNameTopicNameWithSuffix(queueSuffix))
 	subscriber, err := amqp.NewSubscriber(amqpConfig, watermill.NewStdLogger(true, true))
 	if err != nil {

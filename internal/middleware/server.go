@@ -100,7 +100,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 	var buffer chan []byte = make(chan []byte, 100)
 	var gets []chan bool
 	var eventSubsripter *broker.EventSubsripter
-	eventSubsripter, err = broker.NewEventSubsripter(uriBroker)
+	eventSubsripter, err = broker.NewEventSubsripter(uriBroker, "current")
 	if err != nil {
 		log.Println("ошибка открытия uri " + uriBroker + " - " + err.Error())
 		conn.Close(http.StatusInternalServerError, "rabbit error "+err.Error())

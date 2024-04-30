@@ -51,7 +51,7 @@ func main() {
 	service := service.NewControllerService(base)
 	l.Info("success connecting to postgresql")
 
-	sb, err := broker.NewEventSubsripter(uriBroker)
+	sb, err := broker.NewEventSubsripter(uriBroker, "base")
 	if err != nil {
 		log.Println("ошибка открытия uri " + uriBroker + " - " + err.Error())
 		return
