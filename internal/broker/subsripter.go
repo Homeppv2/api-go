@@ -32,9 +32,8 @@ func (eventSubsripter *EventSubsripter) SubscribeMessange(ctx context.Context, t
 			case msg := <-message:
 				data <- msg.Payload
 				msg.Ack()
-				break
 			case <-end:
-				break
+				return
 			}
 		}
 	}()
