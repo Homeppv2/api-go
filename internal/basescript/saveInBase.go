@@ -64,9 +64,11 @@ func main() {
 			var msg entitys.MessangeTypeZiroJson
 			json.Unmarshal(tmp, &msg)
 			log.Println(msg)
-			if msg.RequestAuth == nil {
-				continue
-			}
+			/*
+				if msg.RequestAuth == nil {
+					continue
+				}
+			*/
 			if msg.One != nil {
 				service.CreateMessageTypeOne(context.Background(), *msg.One)
 			}
@@ -80,6 +82,7 @@ func main() {
 	}()
 	var ends []chan bool
 	ctrls, err = base.GetListContorllers(context.Background())
+	log.Println(len(ctrls))
 	for i := 0; i < len(ctrls); i++ {
 		var end = make(chan bool)
 		sb.SubscribeMessange(context.Background(), strconv.Itoa(ctrls[i].Id_contorller), buffer, end)
@@ -102,6 +105,7 @@ func main() {
 					ends[i] <- true
 					close(ends[i])
 				}
+				log.Println(len(ctrls))
 				ends = ends2
 			case <-finish:
 				for i := 0; i < len(ends); i++ {
