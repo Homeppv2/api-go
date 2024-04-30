@@ -29,7 +29,7 @@ require (
 )
 
 require (
-	github.com/Homeppv2/entitys v0.0.0-20240420220521-4b3cbd6e8c80
+	github.com/Homeppv2/entitys v0.0.0-20240430204756-804c09ab0764
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.1
 	github.com/golang/protobuf v1.5.4 // indirect
