@@ -49,7 +49,7 @@ func NewRouter(host string, port string, serviceuser service.UserServiceInterfac
 	return r
 }
 
-func (s *Router) login(w http.ResponseWriter, r *http.Request) {
+func (s Router) login(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{InsecureSkipVerify: true})
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("количество контролеров у пользователя ", len(ctrl))
-	var buffer chan []byte = make(chan []byte, 100)
+	buffer := make(chan []byte, 100)
 	var gets []chan bool
 	var eventSubsripter *broker.EventSubsripter
 	eventSubsripter, err = broker.NewEventSubsripter(uriBroker, "current")
@@ -177,11 +177,11 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		gets[i] <- true
 		close(gets[i])
 	}
-	time.Sleep(5 * time.Second)
+	time.Sleep(2 * time.Second)
 	close(buffer)
 }
 
-func (s *Router) register(w http.ResponseWriter, r *http.Request) {
+func (s Router) register(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
