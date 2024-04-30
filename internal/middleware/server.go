@@ -84,7 +84,7 @@ func (s *Router) login(w http.ResponseWriter, r *http.Request) {
 		conn.Close(http.StatusBadRequest, "user invalide")
 		return
 	}
-	hp := user.HashPassword
+	// hp := user.HashPassword
 	user.HashPassword = ""
 	data, _ = json.Marshal(&user)
 	err = conn.Write(ctx, websocket.MessageText, data)
