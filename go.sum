@@ -2,6 +2,8 @@ github.com/Homeppv2/entitys v0.0.0-20240414182336-64a38be84d08 h1:LQlXnjaPMWQB9F
 github.com/Homeppv2/entitys v0.0.0-20240414182336-64a38be84d08/go.mod h1:bVmG+NKL1licLS+Xk88GGBVuFCcI2TB1v5NawGJ/yXQ=
 github.com/Homeppv2/entitys v0.0.0-20240420220521-4b3cbd6e8c80 h1:PRJpnjQ5v/0tyJRbs/fsh+RzHyFLmm1VFbgFEfsXevI=
 github.com/Homeppv2/entitys v0.0.0-20240420220521-4b3cbd6e8c80/go.mod h1:bVmG+NKL1licLS+Xk88GGBVuFCcI2TB1v5NawGJ/yXQ=
+github.com/Homeppv2/entitys v0.0.0-20240430204756-804c09ab0764 h1:Umefw7Vvx0SPyXGBFVo6CNtVfNlSjc42UhiRrQp0yIE=
+github.com/Homeppv2/entitys v0.0.0-20240430204756-804c09ab0764/go.mod h1:bVmG+NKL1licLS+Xk88GGBVuFCcI2TB1v5NawGJ/yXQ=
 github.com/ThreeDotsLabs/watermill v1.3.5 h1:50JEPEhMGZQMh08ct0tfO1PsgMOAOhV3zxK2WofkbXg=
 github.com/ThreeDotsLabs/watermill v1.3.5/go.mod h1:O/u/Ptyrk5MPTxSeWM5vzTtZcZfxXfO9PK9eXTYiFZY=
 github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.1 h1:OxvMB2/3YtcQuC7quC+CGmFpGz9oaxP2ef5wkp+R2oM=
