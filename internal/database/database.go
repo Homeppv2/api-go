@@ -311,12 +311,11 @@ func (r *Database) GetListContorllers(ctx context.Context) (controllers []entity
 	if err != nil {
 		return nil, err
 	}
-	if rows.Next() {
+	for rows.Next() {
 		var ctrl entitys.ControllersData
 		rows.Scan(&ctrl.Id_contorller)
 		controllers = append(controllers, ctrl)
 	}
 	rows.Close()
 	return
-
 }
