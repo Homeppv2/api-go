@@ -88,25 +88,27 @@ func main() {
 		sb.SubscribeMessange(context.Background(), strconv.Itoa(ctrls[i].Id_contorller), buffer, end)
 		ends = append(ends, end)
 	}
-	t := time.NewTicker(3 * time.Minute)
+	// t := time.NewTicker(3 * time.Minute)
 	finish := make(chan bool)
 	go func() {
 		for {
 			select {
-			case <-t.C:
-				var ends2 []chan bool
-				ctrls, err = base.GetListContorllers(context.Background())
-				for i := 0; i < len(ctrls); i++ {
-					var end = make(chan bool)
-					sb.SubscribeMessange(context.Background(), strconv.Itoa(ctrls[i].Id_contorller), buffer, end)
-					ends2 = append(ends2, end)
-				}
-				for i := 0; i < len(ends); i++ {
-					ends[i] <- true
-					close(ends[i])
-				}
-				log.Println(len(ctrls))
-				ends = ends2
+			/*
+				case <-t.C:
+					var ends2 []chan bool
+					ctrls, err = base.GetListContorllers(context.Background())
+					for i := 0; i < len(ctrls); i++ {
+						var end = make(chan bool)
+						sb.SubscribeMessange(context.Background(), strconv.Itoa(ctrls[i].Id_contorller), buffer, end)
+						ends2 = append(ends2, end)
+					}
+					for i := 0; i < len(ends); i++ {
+						ends[i] <- true
+						close(ends[i])
+					}
+					log.Println(len(ctrls))
+					ends = ends2
+			*/
 			case <-finish:
 				for i := 0; i < len(ends); i++ {
 					ends[i] <- true
