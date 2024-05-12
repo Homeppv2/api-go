@@ -80,6 +80,7 @@ func main() {
 			}
 		}
 	}()
+	time.Sleep(15 * time.Second)
 	var ends []chan bool
 	ctrls, err = base.GetListContorllers(context.Background())
 	log.Println(len(ctrls))
