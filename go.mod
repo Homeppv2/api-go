@@ -10,6 +10,7 @@ require (
 )
 
 require (
+	github.com/Homeppv2/entitys v0.0.0-20240523200918-3664d6e84b74 // indirect
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
@@ -29,7 +30,6 @@ require (
 )
 
 require (
-	github.com/Homeppv2/entitys v0.0.0-20240430204756-804c09ab0764
 	github.com/ThreeDotsLabs/watermill v1.3.5
 	github.com/ThreeDotsLabs/watermill-amqp/v2 v2.1.1
 	github.com/golang/protobuf v1.5.4 // indirect

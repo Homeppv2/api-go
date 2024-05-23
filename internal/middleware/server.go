@@ -220,8 +220,26 @@ func (s *Router) getidcontroller(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	id, err := s.ControllerService.GetIdControllerByTypeAndNumber(r.Context(), t, n)
+	email := r.Header.Get("email")
+	if len(email) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	password := r.Header.Get("password")
+	if len(password) == 0 {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	user, err := s.UserService.GetByEmail(context.Background(), email)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if !s.Hasher.CompareAndHash(user.HashPassword, password) {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+	id, err := s.ControllerService.GetIdControllers(r.Context(), t, n)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return

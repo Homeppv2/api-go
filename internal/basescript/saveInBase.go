@@ -15,6 +15,7 @@ import (
 	"github.com/Homeppv2/api-go/internal/broker"
 	"github.com/Homeppv2/api-go/internal/database"
 	"github.com/Homeppv2/api-go/internal/service"
+	"github.com/Homeppv2/api-go/pkg/hasher"
 	"github.com/Homeppv2/entitys"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -47,7 +48,9 @@ func main() {
 		l.Info("failed to ping to postgresql: %s", err.Error())
 		return
 	}
+	h := hasher.NewHasher()
 	base := database.NewDatabase(db)
+	uservice := service.NewUserService(base, *h)
 	service := service.NewControllerService(base)
 	l.Info("success connecting to postgresql")
 
@@ -64,19 +67,21 @@ func main() {
 			var msg entitys.MessangeTypeZiroJson
 			json.Unmarshal(tmp, &msg)
 			log.Println(msg)
-			/*
-				if msg.RequestAuth == nil {
-					continue
-				}
-			*/
+			if msg.RequestAuth == nil {
+				continue
+			}
+			user, err := uservice.GetByEmail(context.Background(), msg.RequestAuth.Email)
+			if err != nil {
+				continue
+			}
 			if msg.One != nil {
-				service.CreateMessageTypeOne(context.Background(), *msg.One)
+				service.CreateMessageTypeOne(context.Background(), *msg.One, user.ID)
 			}
 			if msg.Two != nil {
-				service.CreateMessageTypeTwo(context.Background(), *msg.Two)
+				service.CreateMessageTypeTwo(context.Background(), *msg.Two, user.ID)
 			}
 			if msg.Three != nil {
-				service.CreateMessageTypeThree(context.Background(), *msg.Three)
+				service.CreateMessageTypeThree(context.Background(), *msg.Three, user.ID)
 			}
 		}
 	}()
