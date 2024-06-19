@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/Homeppv2/entitys"
 )
@@ -19,4 +20,5 @@ type DatabaseInterface interface {
 	GetListControllersByUserId(ctx context.Context, user_id int) (controllers []entitys.ControllersData, err error)
 	GetListContorllers(ctx context.Context) (controllers []entitys.ControllersData, err error)
 	GetIdControllers(ctx context.Context, type_, number_ int) (id int, err error)
+	GetListMessangesFromDateForUserId(ctx context.Context, from, to time.Time, UserId int) (msg []entitys.MessangeTypeZiroJson, err error)
 }

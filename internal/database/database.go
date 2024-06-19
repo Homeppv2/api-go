@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"time"
 
 	"github.com/Homeppv2/entitys"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -352,4 +353,101 @@ func (r *Database) GetIdControllers(ctx context.Context, type_, number_ int) (id
 	}
 	rows.Close()
 	return
+}
+
+func (r *Database) GetListMessangesFromDateForUserId(ctx context.Context, from, to time.Time, UserId int) (msg []entitys.MessangeTypeZiroJson, err error) {
+	q := `
+	WITH ctrls as (
+		SELECT id_controller from user_controllers where id_user = $1
+	)
+	SELECT id_messange, id_user_controllers, status_controller, charge_controller, temperature_MK_controller, t from messanges where t >= $2 and t <= $3 and id_contorller = ctrl.id_contorller ORDER BY t;
+	`
+	conn, err := r.pool.Acquire(context.Background())
+	rows, err := conn.Query(context.Background(), q, UserId, from, to)
+	var msgs []entitys.MainMessangesData
+	for rows.Next() {
+		var main entitys.MainMessangesData
+		rows.Scan(&main.Id_messange, &main.Id_contorller, &main.Status_controller, &main.Charge_controller, &main.Temperature_MK_controller, &main.Tm)
+		msgs = append(msgs, main)
+	}
+	rows.Close()
+	for _, v := range msgs {
+		q = `
+		SELECT type_controller, number_controller from contollers where id_controller = $1;
+		`
+		rows, err = conn.Query(context.Background(), q, v.Id_contorller)
+		var type_ctrl, nmbr_ctrl int
+		if rows.Next() {
+			rows.Scan(&type_ctrl, &nmbr_ctrl)
+		}
+		rows.Close()
+		switch type_ctrl {
+		case 10:
+			q = `
+				SELECT leack from messanges_contollers_leack where id_messange = $1;
+				`
+			var leak entitys.ControlerLeackDataMessange
+			rows, err = conn.Query(context.Background(), q, v.Id_messange)
+			if rows.Next() {
+				rows.Scan(&leak.Leack)
+			}
+			rows.Close()
+			var json entitys.MessangeTypeZiroJson
+			json.One = new(entitys.MessageTypeOneJSON)
+			json.One.MainMessageJSON.Type = type_ctrl
+			json.One.MainMessageJSON.Number = nmbr_ctrl
+			json.One.MainMessageJSON.Charge = v.Charge_controller
+			json.One.MainMessageJSON.Status = v.Status_controller
+			json.One.MainMessageJSON.Temperature_MK = v.Temperature_MK_controller
+			json.One.MainMessageJSON.Data = v.Tm
+			json.One.Controlerleack = &leak
+			msg = append(msg, json)
+			break
+		case 11:
+			q = `
+				SELECT temperature, humidity, pressure, gas from messanges_controllers_module where id_messange = $1;
+				`
+			var module entitys.ControlerModuleDataMessange
+			rows, err = conn.Query(context.Background(), q, v.Id_messange)
+			if rows.Next() {
+				rows.Scan(&module.Humidity, &module.Humidity, &module.Pressure, &module.Gas)
+			}
+			rows.Close()
+			var json entitys.MessangeTypeZiroJson
+			json.Two = new(entitys.MessageTypeTwoJSON)
+			json.Two.MainMessageJSON.Type = type_ctrl
+			json.Two.MainMessageJSON.Number = nmbr_ctrl
+			json.Two.MainMessageJSON.Charge = v.Charge_controller
+			json.Two.MainMessageJSON.Status = v.Status_controller
+			json.Two.MainMessageJSON.Temperature_MK = v.Temperature_MK_controller
+			json.Two.MainMessageJSON.Data = v.Tm
+			json.Two.Controlermodule = &module
+			msg = append(msg, json)
+			break
+		case 12:
+			q = `
+				SELECT temperature, humidity, pressure, VOC, gas1, gas2, gas3, pm1, pm25, pm10, fire, smoke from messanges_controllers_enviroment where id_messange = $1;
+				`
+			var env entitys.ControlerEnviromentDataMessange
+			rows, err = conn.Query(context.Background(), q, v.Id_messange)
+			if rows.Next() {
+				rows.Scan(&env.Temperature, &env.Humidity, &env.Pressure, &env.Voc, &env.Gas1, &env.Gas1, &env.Gas2, &env.Gas3, &env.Pm1, &env.Pm25, &env.Pm10, &env.Fire, &env.Smoke)
+			}
+			rows.Close()
+			var json entitys.MessangeTypeZiroJson
+			json.Three = new(entitys.MessageTypeThreeJSON)
+			json.Three.MainMessageJSON.Type = type_ctrl
+			json.Three.MainMessageJSON.Number = nmbr_ctrl
+			json.Three.MainMessageJSON.Charge = v.Charge_controller
+			json.Three.MainMessageJSON.Status = v.Status_controller
+			json.Three.MainMessageJSON.Temperature_MK = v.Temperature_MK_controller
+			json.Three.MainMessageJSON.Data = v.Tm
+			json.Three.Controlerenviroment = &env
+			break
+		default:
+			continue
+		}
+	}
+	return
+
 }
